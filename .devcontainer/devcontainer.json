@@ -1,0 +1,41 @@
+{
+  "name": "task-calendar (Vite + Prisma + Vercel)",
+  "image": "mcr.microsoft.com/devcontainers/javascript-node:1-20-bullseye",
+
+  "features": {
+    "ghcr.io/devcontainers/features/git:1": {}
+  },
+
+  // Vite dev server / Vercel dev server
+  "forwardPorts": [5173, 3000],
+  "portsAttributes": {
+    "5173": { "label": "Vite Dev Server", "onAutoForward": "notify" },
+    "3000": { "label": "Vercel Dev (api/)", "onAutoForward": "notify" }
+  },
+
+  // Vercel CLI と Prisma CLI をグローバルに導入し、package.json があれば依存関係を入れる
+  "postCreateCommand": "npm install -g vercel prisma && if [ -f package.json ]; then npm install; fi",
+
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "Prisma.prisma",
+        "dbaeumer.vscode-eslint",
+        "esbenp.prettier-vscode",
+        "editorconfig.editorconfig",
+        "ms-vscode.vscode-typescript-next"
+      ],
+      "settings": {
+        "editor.formatOnSave": true,
+        "editor.defaultFormatter": "esbenp.prettier-vscode"
+      }
+    }
+  },
+
+  "remoteEnv": {
+    // Vercel/Neon の接続情報は .env.local に置く運用（Vercel Dashboard から取得）
+    // ここでは値を持たず、存在のみ想定。実際の値はコンテナ内 .env.local から読み込む。
+  },
+
+  "remoteUser": "node"
+}

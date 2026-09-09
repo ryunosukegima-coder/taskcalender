@@ -1,0 +1,91 @@
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["driverAdapters"]
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+model User {
+  id           String             @id @default(cuid())
+  email        String             @unique
+  passwordHash String
+  createdAt    DateTime           @default(now())
+  tasks        Task[]
+  history      OperationHistory[]
+  settings     AppSettings?
+  sessions     Session[]
+}
+
+model Session {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tokenHash String   @unique
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+}
+
+model Task {
+  id             String    @id @default(cuid())
+  userId         String?
+  user           User?     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title          String
+  description    String?
+  // free-text tag; null = uncategorized. Grouping/coloring is derived
+  // client-side from this string, so there is no separate Category table.
+  category       String?
+  // estimated hours to complete the task (may be fractional); null = not estimated
+  estimatedHours Float?
+  // 1 (lowest) .. 5 (highest); null = not set. Drives category/all-day
+  // ordering (urgent-first, unset tasks last) — see TaskListPanel/CalendarView.
+  urgency        Int?
+  // 1 (lowest) .. 5 (highest); null = not set
+  importance     Int?
+  completed      Boolean   @default(false)
+  // null = unscheduled (sits in the task list, not on the calendar)
+  startDate      DateTime?
+  // required iff startDate is set; validated server-side to 1..5
+  durationDays   Int?
+  // false = timed event (startTime/endTime set); true = all-day
+  isAllDay       Boolean   @default(true)
+  // "HH:mm", set iff isAllDay is false
+  startTime      String?
+  endTime        String?
+  // e.g. "FREQ=WEEKLY;INTERVAL=1;UNTIL=20261231T000000Z"; null = does not repeat
+  recurrenceRule String?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  @@index([startDate])
+  @@index([userId])
+}
+
+model OperationHistory {
+  id         String   @id @default(cuid())
+  userId     String?
+  user       User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  // "TASK_CREATED" | "TASK_UPDATED" | "TASK_DELETED" |
+  // "TASK_SCHEDULED" | "TASK_RESCHEDULED" | "TASK_UNSCHEDULED" | "SETTINGS_UPDATED"
+  action     String
+  entityType String
+  entityId   String?
+  payload    Json
+  createdAt  DateTime @default(now())
+
+  @@index([createdAt])
+  @@index([userId])
+}
+
+model AppSettings {
+  id                 String   @id @default(cuid())
+  userId             String?  @unique
+  user               User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  taskFeatureEnabled Boolean  @default(true)
+  updatedAt          DateTime @updatedAt
+}
