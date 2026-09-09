@@ -621,3 +621,99 @@ body {
   cursor: pointer;
   text-align: center;
 }
+
+/* Phone-width layout: single-column calendar page (task list stacks above
+   the calendar instead of sitting beside it), tighter chrome everywhere so
+   the calendar itself keeps as much width as possible, and a wrapping
+   FullCalendar toolbar so its three button groups don't overflow a ~375px
+   viewport. Drag-and-drop between the task list and calendar keeps working
+   unchanged — both hit-test against DOM rects, which don't care whether the
+   panels sit side by side or stacked. */
+@media (max-width: 768px) {
+  .app-header {
+    flex-wrap: wrap;
+    gap: 8px;
+    padding: 10px 14px;
+  }
+
+  .app-title {
+    font-size: 16px;
+  }
+
+  .app-nav {
+    order: 3;
+    width: 100%;
+    gap: 6px;
+  }
+
+  .app-nav-button {
+    flex: 1;
+    padding: 6px 4px;
+    font-size: 13px;
+    text-align: center;
+  }
+
+  .app-user {
+    gap: 8px;
+  }
+
+  .app-user-email {
+    display: none;
+  }
+
+  .app-main {
+    padding: 12px;
+  }
+
+  .calendar-page-layout {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .task-list-panel,
+  .calendar-view {
+    padding: 12px;
+  }
+
+  .dialog {
+    width: 94%;
+    padding: 16px;
+    max-height: 90vh;
+    overflow-y: auto;
+  }
+
+  .task-schedule-form-row {
+    flex-direction: column;
+    gap: 0;
+  }
+
+  .new-task-header-ratings {
+    gap: 12px;
+  }
+
+  .auth-card {
+    padding: 20px;
+  }
+
+  /* FullCalendar's own toolbar: let the three button groups (nav, title,
+     view switch) wrap onto their own lines instead of overflowing, and
+     shrink the buttons/title enough to fit a phone width. */
+  .fc .fc-toolbar {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .fc .fc-toolbar-title {
+    font-size: 16px;
+  }
+
+  .fc .fc-button {
+    padding: 4px 8px;
+    font-size: 13px;
+  }
+
+  .history-item {
+    flex-wrap: wrap;
+    gap: 4px;
+  }
+}
