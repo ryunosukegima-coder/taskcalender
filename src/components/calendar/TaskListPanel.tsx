@@ -23,6 +23,17 @@ interface CategoryGroup {
 const UNCATEGORIZED_KEY = "";
 const DRAG_THRESHOLD_PX = 6;
 
+// On phone-width layouts the task list sits above the calendar (see the
+// mobile stylesheet), so a drag that starts in the list can easily begin
+// before the calendar has scrolled into view — there's nowhere on-screen
+// to drop onto yet. A touch-and-hold nudges the page to reveal the
+// calendar (below this width; side-by-side desktop layouts never need it)
+// while the FullCalendar Draggable's own longer press-delay is still
+// counting down, so by the time it actually starts dragging the calendar
+// is already in view underneath the finger.
+const MOBILE_LAYOUT_QUERY = "(max-width: 768px)";
+const LONG_PRESS_MS = 450;
+
 // Ascending by urgency (1..5); tasks with no urgency set sort after every
 // task that has one, tasks tied on urgency keep their incoming (createdAt
 // desc) order.
@@ -91,6 +102,16 @@ export default function TaskListPanel({ onSelectTask, onError }: Props) {
   // follows a drag-and-drop-back-onto-itself gesture doesn't open the detail
   // modal. Cleared by the click handler itself, so it never lingers.
   const suppressClickRef = useRef(false);
+  const [liftedTaskId, setLiftedTaskId] = useState<string | null>(null);
+  const longPressTimerRef = useRef<number | null>(null);
+
+  function clearLongPress() {
+    if (longPressTimerRef.current != null) {
+      window.clearTimeout(longPressTimerRef.current);
+      longPressTimerRef.current = null;
+    }
+    setLiftedTaskId(null);
+  }
 
   const groups = useMemo(() => groupByCategory(tasks ?? []), [tasks]);
 
@@ -129,6 +150,7 @@ export default function TaskListPanel({ onSelectTask, onError }: Props) {
       dragRef.current = null;
       setDraggingTaskId(null);
       setHoverGroupKey(undefined);
+      clearLongPress();
       if (!drag) return;
       if (drag.moved) suppressClickRef.current = true;
       if (!drag.moved || !container) return;
@@ -164,6 +186,16 @@ export default function TaskListPanel({ onSelectTask, onError }: Props) {
       startX: e.clientX,
       startY: e.clientY,
     };
+
+    if (e.pointerType === "touch" && window.matchMedia(MOBILE_LAYOUT_QUERY).matches) {
+      longPressTimerRef.current = window.setTimeout(() => {
+        setLiftedTaskId(taskId);
+        navigator.vibrate?.(30);
+        document
+          .querySelector(".calendar-view")
+          ?.scrollIntoView({ behavior: "smooth", block: "start" });
+      }, LONG_PRESS_MS);
+    }
   }
 
   function handleItemClick(task: Task) {
@@ -214,6 +246,7 @@ export default function TaskListPanel({ onSelectTask, onError }: Props) {
                     task={task}
                     onClick={() => handleItemClick(task)}
                     dragging={task.id === draggingTaskId}
+                    lifted={task.id === liftedTaskId}
                   />
                 ))}
               </ul>

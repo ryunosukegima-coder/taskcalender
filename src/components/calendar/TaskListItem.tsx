@@ -6,9 +6,10 @@ interface Props {
   task: Task;
   onClick: () => void;
   dragging?: boolean;
+  lifted?: boolean;
 }
 
-export default function TaskListItem({ task, onClick, dragging }: Props) {
+export default function TaskListItem({ task, onClick, dragging, lifted }: Props) {
   // Mirrors buildEvent()'s shape (id + extendedProps.urgency) so the event
   // FullCalendar shows the instant it's dropped already sorts correctly —
   // otherwise it briefly renders with no urgency (sorting last), which on
@@ -23,7 +24,7 @@ export default function TaskListItem({ task, onClick, dragging }: Props) {
 
   return (
     <li
-      className={`task-list-item${dragging ? " task-list-item--dragging" : ""}`}
+      className={`task-list-item${dragging ? " task-list-item--dragging" : ""}${lifted ? " task-list-item--lifted" : ""}`}
       data-event={eventPayload}
       data-task-id={task.id}
       onClick={onClick}

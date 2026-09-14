@@ -161,6 +161,15 @@ body {
   opacity: 0.4;
 }
 
+/* Touch-and-hold feedback (see TaskListPanel's long-press timer): the item
+   visually "lifts" off the list the moment the hold is recognized, at the
+   same time the page auto-scrolls the calendar into view underneath it. */
+.task-list-item--lifted {
+  transform: scale(1.03);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.4);
+  border-color: var(--color-primary);
+}
+
 .task-list-item-badges {
   display: flex;
   align-items: center;
